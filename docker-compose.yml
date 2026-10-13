@@ -1,0 +1,38 @@
+services:
+  app:
+    build: ./app
+    ports:
+      - "10000:10000"
+    depends_on:
+      - fluentd
+    environment:
+      - FLUENTD_HOST=fluentd
+      - FLUENTD_PORT=24224
+
+  fluentd:
+    build: ./fluentd
+    ports:
+      - "24224:24224"
+    depends_on:
+      - elasticsearch
+
+  elasticsearch:
+    image: docker.elastic.co/elasticsearch/elasticsearch:7.17.0
+    environment:
+      - discovery.type=single-node
+      - xpack.security.enabled=false
+      - "ES_JAVA_OPTS=-Xms512m -Xmx512m"
+    ports:
+      - "9200:9200"
+    volumes:
+      - esdata:/usr/share/elasticsearch/data
+
+  kibana:
+    image: docker.elastic.co/kibana/kibana:7.17.0
+    ports:
+      - "5601:5601"
+    depends_on:
+      - elasticsearch
+
+volumes:
+  esdata:
